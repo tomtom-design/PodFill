@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  macos:
+    name: macOS app (self-check + build)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Self-check (parser, commands, cancel)
+        run: swift run -c release PodFillSelfCheck
+
+      - name: Build PodFill.app (ad-hoc signed)
+        run: ./build.sh
+
+  windows:
+    name: Windows app (tests, exe, setup smoke test)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/build-windows
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: PodFill-Windows
+          path: |
+            windows/dist/publish/PodFill.exe
+            windows/README.txt
+          if-no-files-found: error

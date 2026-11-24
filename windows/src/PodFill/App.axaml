@@ -1,0 +1,32 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PodFill.App"
+             Name="PodFill"
+             RequestedThemeVariant="Default">
+    <!-- "Default" follows the Windows light/dark setting. -->
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Windows 11 status colors (WinUI SystemFillColorSuccess / Critical / Caution). -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#0F7B0F" />
+                    <SolidColorBrush x:Key="CriticalBrush" Color="#C42B1C" />
+                    <SolidColorBrush x:Key="CautionBrush" Color="#9D5D00" />
+                    <SolidColorBrush x:Key="BannerBrush" Color="#F3F6FC" />
+                    <SolidColorBrush x:Key="PanelBorderBrush" Color="#1A000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#6CCB5F" />
+                    <SolidColorBrush x:Key="CriticalBrush" Color="#FF99A4" />
+                    <SolidColorBrush x:Key="CautionBrush" Color="#FCE100" />
+                    <SolidColorBrush x:Key="BannerBrush" Color="#2B2F38" />
+                    <SolidColorBrush x:Key="PanelBorderBrush" Color="#26FFFFFF" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+            <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, Menlo, monospace</FontFamily>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,131 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="using:PodFill.Core"
+        x:Class="PodFill.MainWindow"
+        x:DataType="core:MainViewModel"
+        Title="PodFill"
+        Icon="/Assets/PodFill.ico"
+        Width="620" Height="760" MinWidth="520" MinHeight="560"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.heading">
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.caption">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Opacity" Value="0.7" />
+        </Style>
+        <Style Selector="TextBlock.status.done">
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+        </Style>
+        <Style Selector="TextBlock.status.failed">
+            <Setter Property="Foreground" Value="{DynamicResource CriticalBrush}" />
+        </Style>
+        <Style Selector="TextBlock.status.muted">
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style Selector="ListBox.songs ListBoxItem">
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+    </Window.Styles>
+
+    <!-- Rows never overlap: when space is short the song list shrinks first. -->
+    <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+        <!-- Top: setup, inputs, buttons, messages, progress -->
+        <StackPanel Grid.Row="0" Spacing="14">
+
+            <Border IsVisible="{Binding NeedsSetup}" Background="{DynamicResource BannerBrush}"
+                    BorderBrush="{DynamicResource PanelBorderBrush}" BorderThickness="1"
+                    CornerRadius="8" Padding="14">
+                <StackPanel Spacing="8">
+                    <TextBlock Classes="heading" FontSize="15" Text="One-time setup" />
+                    <TextBlock TextWrapping="Wrap"
+                               Text="PodFill first downloads its engine: spotDL, Python, ffmpeg and Deno (about 450 MB on disk, all in PodFill's own folder). It needs an internet connection and takes a few minutes." />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Classes="accent" Content="Set up" Command="{Binding SetUpCommand}" />
+                        <TextBlock VerticalAlignment="Center" Text="{Binding SetupStep}" IsVisible="{Binding IsSettingUp}" />
+                    </StackPanel>
+                    <ProgressBar IsVisible="{Binding IsSettingUp}" Minimum="0" Maximum="100"
+                                 IsIndeterminate="{Binding SetupIndeterminate}" Value="{Binding SetupPercent}" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="6">
+                <TextBlock Classes="heading" Text="Spotify links" />
+                <TextBox Text="{Binding UrlText}" AcceptsReturn="True" TextWrapping="Wrap" Height="88"
+                         FontFamily="{StaticResource MonoFont}" IsEnabled="{Binding IsIdle}"
+                         PlaceholderText="https://open.spotify.com/playlist/..." />
+                <TextBlock Classes="caption" Text="Paste playlist, album or track links, one per line." />
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+                <TextBlock Classes="heading" Text="Save to" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Text="{Binding Destination}" IsReadOnly="True" />
+                    <Button Grid.Column="1" Margin="8,0,0,0" Content="Choose…" Click="OnChooseFolder"
+                            IsEnabled="{Binding IsIdle}" />
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="accent" Content="Download" Command="{Binding DownloadCommand}"
+                        IsVisible="{Binding IsIdle}" />
+                <Button Content="Cancel" Command="{Binding CancelCommand}" IsVisible="{Binding IsRunning}" IsCancel="True" />
+                <Button Content="Update downloader" Command="{Binding UpdateCommand}" />
+                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsUpdating}" Width="90" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <TextBlock IsVisible="{Binding HasNotice}" Text="{Binding Notice}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource CautionBrush}" />
+            <TextBlock IsVisible="{Binding HasInfo}" Text="{Binding Info}" TextWrapping="Wrap" Classes="caption" />
+
+            <StackPanel IsVisible="{Binding ShowProgress}" Spacing="4">
+                <ProgressBar Minimum="0" Maximum="{Binding OverallTotal}" Value="{Binding OverallDone}"
+                             IsIndeterminate="{Binding !HasTotal}" />
+                <TextBlock Classes="caption" Text="{Binding ProgressText}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Middle: the song list fills the space; the raw log sits under it when shown -->
+        <Grid Grid.Row="1" Margin="0,14,0,0" RowDefinitions="*,Auto">
+            <Border CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource PanelBorderBrush}">
+                <Panel>
+                    <ListBox Classes="songs" ItemsSource="{Binding Songs}" Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="core:SongRow">
+                                <Grid ColumnDefinitions="22,*,Auto">
+                                    <TextBlock Classes="status" Text="{Binding Glyph}" VerticalAlignment="Center"
+                                               Classes.done="{Binding IsDone}" Classes.failed="{Binding IsFailed}"
+                                               Classes.muted="{Binding IsAlreadyHad}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" ToolTip.Tip="{Binding Name}" />
+                                    <TextBlock Grid.Column="2" Classes="status" Margin="12,0,0,0" FontSize="12"
+                                               Text="{Binding Label}" VerticalAlignment="Center" MaxWidth="260"
+                                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Label}"
+                                               Classes.done="{Binding IsDone}" Classes.failed="{Binding IsFailed}"
+                                               Classes.muted="{Binding IsAlreadyHad}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock Text="Songs will appear here" IsVisible="{Binding !HasSongs}" Opacity="0.45"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Panel>
+            </Border>
+            <TextBox Grid.Row="1" x:Name="LogBox" IsVisible="{Binding ShowLog}" Margin="0,8,0,0" Height="150"
+                     Text="{Binding Log}" IsReadOnly="True" TextWrapping="NoWrap"
+                     FontFamily="{StaticResource MonoFont}" FontSize="11" />
+        </Grid>
+
+        <!-- Bottom bar: log toggle, and the finished actions -->
+        <Grid Grid.Row="2" Margin="0,12,0,0" ColumnDefinitions="Auto,*,Auto,Auto">
+            <ToggleButton Content="Log" IsChecked="{Binding ShowLog, Mode=TwoWay}" />
+            <TextBlock Grid.Column="2" Margin="0,0,12,0" VerticalAlignment="Center" Classes="caption"
+                       Text="{Binding NewFilesText}" IsVisible="{Binding Finished}" />
+            <Button Grid.Column="3" Content="{Binding RevealLabel}" Command="{Binding RevealCommand}"
+                    IsVisible="{Binding Finished}" />
+        </Grid>
+    </Grid>
+</Window>

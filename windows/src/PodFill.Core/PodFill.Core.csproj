@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Everything that isn't UI: links, spotdl arguments, output parser, process runner, setup, view model.
+       No Avalonia dependency, so the CLI harness and the tests drive exactly the code the app runs. -->
+  <PropertyGroup>
+    <RootNamespace>PodFill.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PodFill.Tests" />
+  </ItemGroup>
+</Project>

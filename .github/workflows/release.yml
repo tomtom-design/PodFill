@@ -1,0 +1,40 @@
+name: Release
+
+# Push a tag like v1.0.0: this builds PodFill-Windows.zip and creates the GitHub Release with it.
+# The notarized Mac zip is attached afterwards from the release Mac: ./release-mac.sh v1.0.0
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  windows:
+    name: Windows zip -> GitHub Release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/build-windows
+        with:
+          version: ${{ github.ref_name }}
+
+      # Idempotent: re-running the job, or release-mac.sh having created the release first, just replaces the zip.
+      - name: Create the release or update its Windows zip
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          ZIP: windows/dist/PodFill-Windows.zip
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber
+          elif ! gh release create "$TAG" "$ZIP" --title "PodFill $TAG" --generate-notes --verify-tag; then
+            gh release upload "$TAG" "$ZIP" --clobber
+          fi

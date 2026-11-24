@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PodFill.Core/PodFill.Core.csproj" />
+    <Project Path="src/PodFill/PodFill.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PodFill.Tests/PodFill.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/PodFill.Cli/PodFill.Cli.csproj" />
+  </Folder>
+</Solution>

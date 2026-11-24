@@ -4,6 +4,28 @@ A small macOS app that wraps [spotDL](https://github.com/spotDL/spotify-download
 track links and get tagged MP3s (title, artist, album, cover art) for an offline iPod. spotDL reads the metadata from
 Spotify, downloads the matching audio from YouTube Music (yt-dlp) and tags it with ffmpeg.
 
+## Install from Releases
+
+Download `PodFill-macOS.zip` from the [Releases](https://github.com/tomtom-design/PodFill/releases) page, unzip it
+and move `PodFill.app` to Applications. It is signed with a Developer ID and notarized by Apple, so it opens like any
+other downloaded app. It runs on Apple Silicon and Intel Macs with macOS 14 or later, and still needs the tools from
+[Setup](#setup) below.
+
+**Windows:** download `PodFill-Windows.zip` from the same page. No terminal or Python needed: the Windows app sets up
+its own private copy of spotDL on first launch. [windows/README.txt](windows/README.txt) covers setup, syncing the
+iPod with iTunes or Apple Devices, and uninstalling.
+
+## Making a release
+
+1. Tag and push: `git tag v1.0.0 && git push origin v1.0.0`. CI ([release.yml](.github/workflows/release.yml)) builds
+   `PodFill-Windows.zip` on Windows and creates the GitHub Release with it.
+2. On the release Mac, with that tag checked out and a clean working tree: `./release-mac.sh v1.0.0`. It builds a
+   universal app, signs it with the Developer ID Application identity (hardened runtime), notarizes and staples it,
+   and attaches `PodFill-macOS.zip` to the same release (creating the release if CI hasn't yet).
+
+One-time setup for step 2: a Developer ID Application certificate in the keychain, notary credentials saved with
+`xcrun notarytool store-credentials PodFill --apple-id <apple-id> --team-id <team-id>`, and `gh auth login`.
+
 ## Setup
 
 ```sh

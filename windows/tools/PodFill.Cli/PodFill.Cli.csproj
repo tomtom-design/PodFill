@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Headless harness: drives the app's own MainViewModel / SetupService (no re-implementation).
+       Used for the macOS end-to-end run and for the Windows setup smoke test in CI. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>podfill-cli</AssemblyName>
+    <RootNamespace>PodFill.Cli</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/PodFill.Core/PodFill.Core.csproj" />
+  </ItemGroup>
+</Project>

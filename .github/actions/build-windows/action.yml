@@ -1,0 +1,71 @@
+name: Build PodFill for Windows
+description: >-
+  Unit tests, the single-file win-x64 PodFill.exe, PodFill-Windows.zip (exe + README.txt), and a smoke test of the
+  real first-launch setup. Shared by ci.yml and release.yml so a release ships exactly what CI tested.
+  Leaves windows/dist/publish/PodFill.exe and windows/dist/PodFill-Windows.zip (both git-ignored).
+
+inputs:
+  version:
+    description: Version stamped into PodFill.exe, e.g. the release tag (v1.2.3 or 1.2.3). Empty keeps 1.0.0.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: "10.0.x"
+
+    - name: Unit tests
+      shell: pwsh
+      working-directory: windows
+      run: dotnet test PodFill.slnx -c Release
+
+    - name: Publish PodFill.exe (win-x64, self-contained, single file)
+      shell: pwsh
+      working-directory: windows
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        $extra = @()
+        if ($env:VERSION) { $extra += "-p:Version=$($env:VERSION.TrimStart('v'))" }
+        dotnet publish src/PodFill/PodFill.csproj -c Release -r win-x64 --self-contained `
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o dist/publish @extra
+
+    - name: Package PodFill-Windows.zip
+      shell: pwsh
+      working-directory: windows
+      run: |
+        New-Item -ItemType Directory -Force dist | Out-Null
+        Compress-Archive -Path dist/publish/PodFill.exe, README.txt -DestinationPath dist/PodFill-Windows.zip -Force
+        Get-ChildItem dist/publish/PodFill.exe, dist/PodFill-Windows.zip | Format-Table Name, Length
+
+    # The real Windows bootstrap through the app's own code (MainViewModel.SetUpAsync -> SetupService): pinned uv
+    # download + sha256 check, `uv tool install spotdl`, `spotdl --download-ffmpeg`, `--download-deno`, then
+    # `spotdl --version` and `ffmpeg -version`. Then Update downloader (`uv tool upgrade spotdl`).
+    # No Spotify or YouTube queries. The data dir has a space and an accent, like many real user folders.
+    - name: Setup smoke test (isolated data dir)
+      shell: pwsh
+      working-directory: windows
+      env:
+        PODFILL_DATA_DIR: ${{ runner.temp }}\PodFill data é
+      run: |
+        dotnet run --project tools/PodFill.Cli -c Release -- setup
+        if ($LASTEXITCODE -ne 0) { throw "Set up failed (exit $LASTEXITCODE)" }
+
+        $ffmpeg = "$env:PODFILL_DATA_DIR\home\.spotdl\ffmpeg.exe"
+        $version = & $ffmpeg -version
+        if ($LASTEXITCODE -ne 0) { throw "ffmpeg.exe does not run" }
+        Write-Output "ffmpeg passed to spotdl --ffmpeg: $ffmpeg"
+        Write-Output $version[0]
+
+        dotnet run --project tools/PodFill.Cli -c Release -- update
+        if ($LASTEXITCODE -ne 0) { throw "Update downloader failed (exit $LASTEXITCODE)" }
+
+        # Nothing may land outside the data dir (spotdl's ~/.spotdl is redirected through USERPROFILE).
+        foreach ($p in "$env:USERPROFILE\.spotdl", "$env:USERPROFILE\.local\bin\spotdl.exe", "HKCU:\Software\Python\Astral") {
+          if (Test-Path $p) { throw "Setup wrote outside the data dir: $p" }
+        }
+        Get-ChildItem $env:PODFILL_DATA_DIR | Format-Table Name
+        exit 0
