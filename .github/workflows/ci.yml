@@ -24,8 +24,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Self-check (parser, commands, cancel)
+      - name: Self-check (parser, commands, engine, cancel)
         run: swift run -c release PodFillSelfCheck
+
+      # The real first-launch setup through the app's SetupService: pinned uv + sha256, spotdl, ffmpeg, Deno,
+      # versions, Update downloader. Fails if anything lands outside the data dir. No Spotify/YouTube queries.
+      - name: Setup smoke test (isolated data dir)
+        env:
+          PODFILL_DATA_DIR: ${{ runner.temp }}/PodFill data é
+        run: swift run -c release PodFillSelfCheck --setup-smoke
 
       - name: Build PodFill.app (ad-hoc signed)
         run: ./build.sh

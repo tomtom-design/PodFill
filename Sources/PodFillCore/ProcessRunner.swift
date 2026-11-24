@@ -12,12 +12,16 @@ public final class ProcessRunner: @unchecked Sendable {
     public var isRunning: Bool { process.isRunning }
 
     /// Starts the process and returns its exit status once it has finished. `onLine` is called on a background queue.
+    /// `input` is written to stdin, which is then closed; without it stdin is /dev/null. Either way a prompt never blocks.
     public func run(executable: String, arguments: [String], environment: [String: String],
+                    input: String? = nil, currentDirectory: String? = nil,
                     onLine: @escaping @Sendable (String) -> Void) async throws -> Int32 {
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = arguments
         process.environment = environment
-        process.standardInput = FileHandle.nullDevice   // never let a prompt block on stdin
+        if let currentDirectory { process.currentDirectoryURL = URL(fileURLWithPath: currentDirectory) }
+        let stdin = input.map { _ in Pipe() }
+        process.standardInput = stdin ?? FileHandle.nullDevice
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
@@ -39,7 +43,15 @@ public final class ProcessRunner: @unchecked Sendable {
                 }
                 cont.resume(returning: proc.terminationStatus)
             }
-            do { try process.run() } catch { cont.resume(throwing: error) }
+            do {
+                try process.run()
+                if let stdin, let input {
+                    // A child that already exited must not take the app down with SIGPIPE: fail the write instead.
+                    _ = fcntl(stdin.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1)
+                    try? stdin.fileHandleForWriting.write(contentsOf: Data(input.utf8))
+                    try? stdin.fileHandleForWriting.close()
+                }
+            } catch { cont.resume(throwing: error) }
         }
     }
 

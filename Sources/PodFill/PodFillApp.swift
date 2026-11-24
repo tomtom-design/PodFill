@@ -1,3 +1,4 @@
+import PodFillCore
 import SwiftUI
 
 @main
@@ -14,6 +15,8 @@ struct PodFillApp: App {
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Update Downloader") { model.updateDownloader() }
+                    .disabled(model.isBusy || model.needsSetup)
+                Button("Run Setup Again…") { model.setUp() }
                     .disabled(model.isBusy)
             }
         }

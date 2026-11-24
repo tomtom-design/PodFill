@@ -6,7 +6,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            dependencyBanner
+            setupBanner
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Spotify links").font(.headline)
@@ -43,7 +43,7 @@ struct ContentView: View {
                         .disabled(!model.canDownload)
                 }
                 Button("Update downloader") { model.updateDownloader() }
-                    .disabled(model.isBusy)
+                    .disabled(model.isBusy || model.needsSetup)
                 if model.isUpdating { ProgressView().controlSize(.small) }
                 Spacer()
             }
@@ -53,10 +53,19 @@ struct ContentView: View {
                     .font(.callout).foregroundStyle(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if let info = model.info {
+                Text(info).font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             progress
 
-            songList
+            // No songs before setup; hiding the empty list keeps the banner and the log on screen at the minimum size.
+            if model.needsSetup {
+                Spacer(minLength: 0)
+            } else {
+                songList
+            }
 
             if model.finished {
                 HStack {
@@ -88,22 +97,33 @@ struct ContentView: View {
         .padding(20)
     }
 
-    @ViewBuilder private var dependencyBanner: some View {
-        let problems = model.tools.problems
-        if !problems.isEmpty {
+    /// First launch: PodFill downloads its own engine into ~/Library/Application Support/PodFill.
+    @ViewBuilder private var setupBanner: some View {
+        if model.needsSetup {
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(problems, id: \.message) { p in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(p.message).font(.headline)
-                        Text("Run this in Terminal, then press Check again:").font(.callout)
-                        Text(p.fix).font(.system(.callout, design: .monospaced)).textSelection(.enabled)
+                Text("One-time setup").font(.headline)
+                Text("PodFill first downloads its engine: spotDL, Python, ffmpeg and Deno (about 450 MB on disk, all in PodFill's own folder). It needs an internet connection and takes a few minutes.")
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 12) {
+                    Button("Set up") { model.setUp() }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(model.isBusy)
+                    if model.isSettingUp {
+                        Text(model.setupStep).font(.callout).lineLimit(1)
                     }
                 }
-                Button("Check again") { model.recheckTools() }
+                if model.isSettingUp {
+                    if let percent = model.setupPercent {
+                        ProgressView(value: percent, total: 100)
+                    } else {
+                        ProgressView().progressViewStyle(.linear)
+                    }
+                }
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.red.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+            .background(.blue.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
         }
     }
 
