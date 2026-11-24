@@ -1,0 +1,25 @@
+Processing query: three.spotdl                                                  
+Radiohead - Fitter Happier: Searching for song                                  
+Radiohead - No Surprises: Searching for song                                    
+Radiohead - Electioneering: Searching for song                                  
+Radiohead - Electioneering: Getting audio meta                                  
+Radiohead - Fitter Happier: Getting audio meta                                  
+Radiohead - No Surprises: Getting audio meta                                    
+Radiohead - Fitter Happier: Downloading                                         
+Radiohead - Electioneering: Downloading                                         
+Radiohead - No Surprises: Downloading                                           
+Radiohead - Fitter Happier: Embedding metadata                                  
+Radiohead - Fitter Happier: Done                                                
+1/3 complete                                                                    
+Downloaded "Radiohead - Fitter Happier":                                        
+https://music.youtube.com/watch?v=O4SzvsMFaek                                   
+Radiohead - Electioneering: Embedding metadata                                  
+Radiohead - Electioneering: Done                                                
+2/3 complete                                                                    
+Downloaded "Radiohead - Electioneering":                                        
+https://music.youtube.com/watch?v=3DtgWrFTtQk                                   
+Radiohead - No Surprises: Embedding metadata                                    
+Radiohead - No Surprises: Done                                                  
+3/3 complete                                                                    
+Downloaded "Radiohead - No Surprises":                                          
+https://music.youtube.com/watch?v=7374CZQoS2Y                                   

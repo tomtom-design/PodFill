@@ -1,0 +1,10 @@
+Processing query: https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8         
+Template contains {list-name}, but it's value is None. Replacing with empty     
+string.                                                                         
+Rick Astley - Never Gonna Give You Up: Searching for song                       
+Rick Astley - Never Gonna Give You Up: Getting audio meta                       
+Rick Astley - Never Gonna Give You Up: Downloading                              
+1/1 complete                                                                    
+FFmpegError: Failed to convert Rick Astley - Never Gonna Give You Up, you can   
+find error here:                                                                
+/Users/you/.spotdl/errors/ffmpeg_error_2026-11-24-13-51-58.txt

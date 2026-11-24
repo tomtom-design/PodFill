@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+.swiftpm/
+dist/
+test-output/
+*.zip
+
+# Windows (.NET)
+windows/**/bin/
+windows/**/obj/
+windows/dist/
+windows/test-output/
